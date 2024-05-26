@@ -233,6 +233,21 @@ const Upload: React.FC = () => {
             </button>
           </div>
         )}
+        {prediction && prediction['error'] && (
+          <div className='mt-6 p-4 bg-red-100 border border-red-200 rounded-md'>
+            <div className='flex items-center'>
+              <p className='ml-2 text-red-700'>
+                Something went wrong! Please try again!
+              </p>
+            </div>
+            <button
+              onClick={resetState}
+              className='mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700'
+            >
+              Try New Image
+            </button>
+          </div>
+        )}
       </div>
 
       <Dialog
