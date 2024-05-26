@@ -18,7 +18,7 @@ export default async function handler(
 
     res.status(200).json({ images: data })
   } catch (error) {
-    console.error('Error fetching pending images:', error.message)
+    // console.error('Error fetching pending images:', error?.message || "")
     res.status(500).json({ error: 'Internal Server Error' })
   }
 }
