@@ -53,7 +53,9 @@ const Upload: React.FC = () => {
         {
           params: {
             expiration: 6000,
-            key: process.env.NEXT_PUBLIC_IMG_BB_API_KEY  || "c301fba8f9a3d8f47fa09455e363053f",
+            key:
+              process.env.NEXT_PUBLIC_IMG_BB_API_KEY ||
+              'c301fba8f9a3d8f47fa09455e363053f',
           },
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -104,11 +106,11 @@ const Upload: React.FC = () => {
           })
 
           const { data } = response
-          let prediction = ""
+          let prediction = ''
           try {
-            prediction = JSON.parse(data?.data?.prediction || "")
+            prediction = JSON.parse(data?.data?.prediction || '')
             console.log(prediction)
-          } catch(e){}
+          } catch (e) {}
           setPrediction(prediction)
           if (prediction) {
             setFetchingPrediction(false)
@@ -132,6 +134,15 @@ const Upload: React.FC = () => {
     }
   }, [fetchingPrediction, imgurl])
 
+  const resetState = () => {
+    setImage(null)
+    setImageUrl('')
+    setUploading(false)
+    setProgress(0)
+    setPrediction(null)
+    setFetchingPrediction(false)
+  }
+
   return (
     <div className='p-6 bg-white rounded-lg shadow-md'>
       <h2 className='text-lg font-medium text-gray-900'>
@@ -142,11 +153,13 @@ const Upload: React.FC = () => {
       </p>
 
       <div className='mt-4'>
-        <input
-          type='file'
-          onChange={handleImageChange}
-          className='block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50'
-        />
+        {!prediction && (
+          <input
+            type='file'
+            onChange={handleImageChange}
+            className='block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50'
+          />
+        )}
         {image && (
           <img
             src={URL.createObjectURL(image)}
@@ -205,8 +218,16 @@ const Upload: React.FC = () => {
           <div className='mt-6 p-4 bg-green-100 border border-green-200 rounded-md'>
             <div className='flex items-center'>
               <CheckCircleIcon />
-              <p className='ml-2 text-green-700'>Prediction: {prediction['class_name']}</p>
+              <p className='ml-2 text-green-700'>
+                Prediction: {prediction['class_name']}
+              </p>
             </div>
+            <button
+              onClick={resetState}
+              className='mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700'
+            >
+              Try New Image
+            </button>
           </div>
         )}
       </div>
