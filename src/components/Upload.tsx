@@ -1,7 +1,6 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import axios from 'axios'
 import { Dialog } from '@headlessui/react'
-
 const CheckCircleIcon: React.FC = () => {
   return (
     <svg
@@ -23,6 +22,7 @@ const CheckCircleIcon: React.FC = () => {
 
 const Upload: React.FC = () => {
   const [image, setImage] = useState<File | null>(null)
+  const [imgurl, setImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -46,16 +46,13 @@ const Upload: React.FC = () => {
     formData.append('image', image)
 
     try {
-      const imgurResponse = await axios.post('https://api.imgbb.com/1/upload', null, {
+      const imgurResponse = await axios.post('https://api.imgbb.com/1/upload', formData, {
         params: {
-          expiration: 600,
-          key: process.env.NEXT_PUBLIC_IMG_BB_API_KEY,
+          expiration: 6000,
+          key: process.env.NEXT_PUBLIC_IMG_BB_API_KEY || "c301fba8f9a3d8f47fa09455e363053f",
         },
         headers: {
           'Content-Type': 'multipart/form-data',
-        },
-        data: {
-          image: image,
         },
         onUploadProgress: (event) => {
           if (event.total) {
@@ -63,22 +60,7 @@ const Upload: React.FC = () => {
           }
         },
       })
-      // const imgurResponse = await axios.post(
-      //   `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMG_BB_API_KEY}`,
-      //   formData,
-      //   {
-      //     // headers: {
-      //     //   Authorization: `Client-ID ${process.env.NEXT_PUBLIC_IMG_BB_API_KEY}`,
-      //     // },
-      //     onUploadProgress: (event) => {
-      //       if (event.total) {
-      //         setProgress(Math.round((event.loaded * 100) / event.total))
-      //       }
-      //     },
-      //   }
-      // )
 
-      console.log(imgurResponse)
       const imgurLink = imgurResponse?.data?.data?.url || ""
 
       await axios.post(
@@ -93,8 +75,8 @@ const Upload: React.FC = () => {
 
       setDialogMessage('Image uploaded and link saved successfully!')
       setIsOpen(true)
-
-      setFetchingPrediction(true)
+      setImageUrl(imgurLink)
+      // setFetchingPrediction(true)
     } catch (error) {
       console.error('Error uploading image:', error)
       setDialogMessage('Error uploading image. Please try again.')
@@ -105,31 +87,34 @@ const Upload: React.FC = () => {
   }
 
   useEffect(() => {
-    if (prediction === null && image !== null && !fetchingPrediction) {
-      handlePrediction()
+    let pollingInterval: any
+    console.log("here")
+    if (prediction === null && imgurl) {
+      handlePrediction(imgurl)
+      setFetchingPrediction(true)
+      pollingInterval = setInterval(() => handlePrediction(imgurl), 5000)
     }
-  }, [prediction, image, fetchingPrediction])
 
-  const handlePrediction = async () => {
-    if (!image) return
+    return () => clearInterval(pollingInterval)
+  }, [prediction, imgurl, fetchingPrediction])
 
-    const formData = new FormData()
-    formData.append('image', image)
-
+  const handlePrediction = async (imgurLink: string) => {
     try {
-      const response = await axios.post('/api/predict', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await axios.get('/api/getPrediction', {
+        params: {
+          imgurLink
+        }
       })
 
       const { data } = response
 
       setPrediction(data.prediction)
+      if(data.prediction) {
+        setFetchingPrediction(false)
+      }
     } catch (error) {
       console.error('Error fetching prediction:', error)
     } finally {
-      setFetchingPrediction(false)
     }
   }
 
