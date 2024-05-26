@@ -1,22 +1,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { supabase } from '../../lib/supabaseClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    res.status(405).end(); // Method Not Allowed
+    return;
+  }
+
   const { imgurLink } = req.body;
 
-  const timestamp = new Date().toISOString();
-  const query = 'INSERT INTO images (imgur_url, timestamp, prediction) VALUES ($1, $2, $3) RETURNING *';
-  const values = [imgurLink, timestamp, ''];
+  const { data, error } = await supabase
+    .from('images')
+    .insert([{ imgur_url: imgurLink, timestamp: new Date(), prediction: '' }]);
 
-  try {
-    const result = await pool.query(query, values);
-    res.status(200).json({ data: result.rows[0] });
-  } catch (error) {
-    console.error('Error saving image to database:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  if (error) {
+    res.status(500).json({ error: 'Error saving image to database' });
+  } else {
+    res.status(200).json({ data });
   }
 }

@@ -1,25 +1,22 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { supabase } from '../../lib/supabaseClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    res.status(405).end(); // Method Not Allowed
+    return;
+  }
+
   const { imgurLink, prediction } = req.body;
 
-  const query = 'UPDATE images SET prediction = $1 WHERE imgur_url = $2 RETURNING *';
-  const values = [prediction, imgurLink];
+  const { data, error } = await supabase
+    .from('images')
+    .update({ prediction })
+    .eq('imgur_url', imgurLink);
 
-  try {
-    const result = await pool.query(query, values);
-    if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Image not found' });
-    } else {
-      res.status(200).json({ data: result.rows[0] });
-    }
-  } catch (error) {
-    console.error('Error updating prediction in database:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  if (error || !data.length) {
+    res.status(404).json({ error: 'Image not found or error updating prediction' });
+  } else {
+    res.status(200).json({ data: data[0] });
   }
 }

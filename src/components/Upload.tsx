@@ -1,7 +1,7 @@
-import { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import axios from 'axios';
 
-const Upload = () => {
+const Upload: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
