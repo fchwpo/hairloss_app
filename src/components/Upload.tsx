@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import axios from 'axios'
 import { Dialog } from '@headlessui/react'
+
 const CheckCircleIcon: React.FC = () => {
   return (
     <svg
@@ -27,7 +28,7 @@ const Upload: React.FC = () => {
   const [progress, setProgress] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [dialogMessage, setDialogMessage] = useState('')
-  const [prediction, setPrediction] = useState<string | null>(null)
+  const [prediction, setPrediction] = useState<any | null>(null)
   const [fetchingPrediction, setFetchingPrediction] = useState(false)
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -46,22 +47,26 @@ const Upload: React.FC = () => {
     formData.append('image', image)
 
     try {
-      const imgurResponse = await axios.post('https://api.imgbb.com/1/upload', formData, {
-        params: {
-          expiration: 6000,
-          key: process.env.NEXT_PUBLIC_IMG_BB_API_KEY || "c301fba8f9a3d8f47fa09455e363053f",
-        },
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (event) => {
-          if (event.total) {
-            setProgress(Math.round((event.loaded * 100) / event.total))
-          }
-        },
-      })
+      const imgurResponse = await axios.post(
+        'https://api.imgbb.com/1/upload',
+        formData,
+        {
+          params: {
+            expiration: 6000,
+            key: process.env.NEXT_PUBLIC_IMG_BB_API_KEY  || "c301fba8f9a3d8f47fa09455e363053f",
+          },
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (event) => {
+            if (event.total) {
+              setProgress(Math.round((event.loaded * 100) / event.total))
+            }
+          },
+        }
+      )
 
-      const imgurLink = imgurResponse?.data?.data?.url || ""
+      const imgurLink = imgurResponse.data.data.url
 
       await axios.post(
         '/api/saveImage',
@@ -76,7 +81,7 @@ const Upload: React.FC = () => {
       setDialogMessage('Image uploaded and link saved successfully!')
       setIsOpen(true)
       setImageUrl(imgurLink)
-      // setFetchingPrediction(true)
+      setFetchingPrediction(true)
     } catch (error) {
       console.error('Error uploading image:', error)
       setDialogMessage('Error uploading image. Please try again.')
@@ -87,36 +92,45 @@ const Upload: React.FC = () => {
   }
 
   useEffect(() => {
-    let pollingInterval: any
-    console.log("here")
-    if (prediction === null && imgurl) {
-      handlePrediction(imgurl)
-      setFetchingPrediction(true)
-      pollingInterval = setInterval(() => handlePrediction(imgurl), 5000)
-    }
+    let pollingInterval: NodeJS.Timeout | null = null
 
-    return () => clearInterval(pollingInterval)
-  }, [prediction, imgurl, fetchingPrediction])
+    if (fetchingPrediction && imgurl) {
+      const fetchPrediction = async () => {
+        try {
+          const response = await axios.get('/api/getPrediction', {
+            params: {
+              imgurLink: imgurl,
+            },
+          })
 
-  const handlePrediction = async (imgurLink: string) => {
-    try {
-      const response = await axios.get('/api/getPrediction', {
-        params: {
-          imgurLink
+          const { data } = response
+          let prediction = ""
+          try {
+            prediction = JSON.parse(data?.data?.prediction || "")
+            console.log(prediction)
+          } catch(e){}
+          setPrediction(prediction)
+          if (prediction) {
+            setFetchingPrediction(false)
+            if (pollingInterval) {
+              clearInterval(pollingInterval)
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching prediction:', error)
         }
-      })
-
-      const { data } = response
-
-      setPrediction(data.prediction)
-      if(data.prediction) {
-        setFetchingPrediction(false)
       }
-    } catch (error) {
-      console.error('Error fetching prediction:', error)
-    } finally {
+
+      fetchPrediction()
+      pollingInterval = setInterval(fetchPrediction, 5000)
     }
-  }
+
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+      }
+    }
+  }, [fetchingPrediction, imgurl])
 
   return (
     <div className='p-6 bg-white rounded-lg shadow-md'>
@@ -140,7 +154,7 @@ const Upload: React.FC = () => {
             className='mt-2 w-full h-auto rounded-lg'
           />
         )}
-        {!prediction && !uploading && (
+        {!prediction && !uploading && !fetchingPrediction && (
           <button
             onClick={handleUpload}
             className='mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50'
@@ -187,11 +201,11 @@ const Upload: React.FC = () => {
           </div>
         )}
 
-        {prediction && (
+        {prediction && prediction['class_name'] && (
           <div className='mt-6 p-4 bg-green-100 border border-green-200 rounded-md'>
             <div className='flex items-center'>
               <CheckCircleIcon />
-              <p className='ml-2 text-green-700'>Prediction: {prediction}</p>
+              <p className='ml-2 text-green-700'>Prediction: {prediction['class_name']}</p>
             </div>
           </div>
         )}

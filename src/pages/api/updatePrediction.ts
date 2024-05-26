@@ -9,9 +9,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .update({ prediction })
     .eq('imgur_url', imgurLink);
 
-  if (error || !data?.length) {
+  if (error) {
     res.status(404).json({ error: 'Image not found or error updating prediction' });
   } else {
-    res.status(200).json({ data: data[0] });
+    res.status(200).json({ msg: 'updated' });
   }
 }
