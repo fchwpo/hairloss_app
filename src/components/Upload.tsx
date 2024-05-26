@@ -46,7 +46,7 @@ const Upload: React.FC = () => {
     formData.append('image', image)
 
     try {
-      const imgurResponse = axios.post('https://api.imgbb.com/1/upload', null, {
+      const imgurResponse = await axios.post('https://api.imgbb.com/1/upload', null, {
         params: {
           expiration: 600,
           key: process.env.NEXT_PUBLIC_IMG_BB_API_KEY,
