@@ -2,11 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    res.status(405).end(); // Method Not Allowed
-    return;
-  }
-
   const { imgurLink, prediction } = req.body;
 
   const { data = [], error } = await supabase
