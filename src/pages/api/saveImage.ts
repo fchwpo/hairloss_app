@@ -5,6 +5,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log(req.body)
   const { imgurLink } = req.body
 
   const { data, error } = await supabase

@@ -25,7 +25,11 @@ const Upload: React.FC = () => {
 
       const imgurLink = imgurResponse.data.data.link;
 
-      await axios.post('/api/saveImage', { imgurLink });
+      await axios.post('/api/saveImage', { imgurLink }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       alert('Image uploaded and link saved successfully!');
     } catch (error) {
