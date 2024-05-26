@@ -221,6 +221,9 @@ const Upload: React.FC = () => {
               <p className='ml-2 text-green-700'>
                 Prediction: {prediction['class_name']}
               </p>
+              <p className='ml-2 text-green-700 hidden'>
+                All predictions: {JSON.stringify(prediction['predictions'])}
+              </p>
             </div>
             <button
               onClick={resetState}
