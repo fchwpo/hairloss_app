@@ -46,22 +46,40 @@ const Upload: React.FC = () => {
     formData.append('image', image)
 
     try {
-      const imgurResponse = await axios.post(
-        'https://api.imgur.com/3/image',
-        formData,
-        {
-          headers: {
-            Authorization: `Client-ID ${process.env.NEXT_PUBLIC_IMGUR_CLIENT_ID}`,
-          },
-          onUploadProgress: (event) => {
-            if (event.total) {
-              setProgress(Math.round((event.loaded * 100) / event.total))
-            }
-          },
-        }
-      )
+      const imgurResponse = axios.post('https://api.imgbb.com/1/upload', null, {
+        params: {
+          expiration: 600,
+          key: process.env.NEXT_PUBLIC_IMG_BB_API_KEY,
+        },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        data: {
+          image: image,
+        },
+        onUploadProgress: (event) => {
+          if (event.total) {
+            setProgress(Math.round((event.loaded * 100) / event.total))
+          }
+        },
+      })
+      // const imgurResponse = await axios.post(
+      //   `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMG_BB_API_KEY}`,
+      //   formData,
+      //   {
+      //     // headers: {
+      //     //   Authorization: `Client-ID ${process.env.NEXT_PUBLIC_IMG_BB_API_KEY}`,
+      //     // },
+      //     onUploadProgress: (event) => {
+      //       if (event.total) {
+      //         setProgress(Math.round((event.loaded * 100) / event.total))
+      //       }
+      //     },
+      //   }
+      // )
 
-      const imgurLink = imgurResponse.data.data.link
+      console.log(imgurResponse)
+      const imgurLink = imgurResponse?.data?.data?.url || ""
 
       await axios.post(
         '/api/saveImage',
