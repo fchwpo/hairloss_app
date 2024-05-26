@@ -3,9 +3,10 @@ import Upload from '../components/Upload';
 
 const Home: React.FC = () => {
   return (
-    <div>
-      <h1>Image Upload to Imgur</h1>
-      <Upload />
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8">
+        <Upload />
+      </div>
     </div>
   );
 };
