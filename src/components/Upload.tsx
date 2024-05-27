@@ -151,6 +151,9 @@ const Upload: React.FC = () => {
       <p className='mt-1 text-sm text-gray-600'>
         Please upload your image to check.
       </p>
+      <p className='mt-1 text-sm text-gray-600'>
+        Note: First prediction may take time
+      </p>
 
       <div className='mt-4'>
         {!prediction && (
