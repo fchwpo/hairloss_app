@@ -248,6 +248,16 @@ const Upload: React.FC = () => {
             </button>
           </div>
         )}
+        <div className='mt-8 text-center'>
+          <a
+            href='https://ninth-theater-997.notion.site/Hair-Loss-Classification-5cbf8027005141949eef300efb758142'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-block text-blue-600 dark:text-blue-500 hover:underline'
+          >
+            Learn about improving model accuracy and its metrics
+          </a>
+        </div>
       </div>
 
       <Dialog
